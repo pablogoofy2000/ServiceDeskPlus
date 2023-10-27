@@ -1198,6 +1198,36 @@ function Get-AllSDPAttachments{
         $response
     }
 }
+
+function Get-TaskRequest {
+    [CmdletBinding()]
+    param
+        (
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0)] 
+        [alias ("id")]
+        [Int32]
+        $RequestID,
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=1)]
+        [Int32]
+        $TaskID,
+        [Parameter(Mandatory=$false)]
+        [Switch]
+        $UseSDPDemo
+        )
+    process {
+        if($UseSDPDemo) {
+        $return =Switch-ToDemo
+        $sdp = $return[0]
+        $ApiKey = $return[1]
+        }
+        $header = @{TECHNICIAN_KEY=$ApiKey}
+        $Uri = $sdp + "/api/v3/requests/$($RequestID)/tasks/$($TaskID)"
+        $Uri
+        $result = Invoke-RestMethod -Method Get -Uri $Uri -Headers $header
+        $result
+    }
+} # Gets information on an existing Task Request
+
 Export-ModuleMember -Function Search-Request,
 Add-TaskRequest,
 Remove-Request,
@@ -1222,4 +1252,5 @@ Get-SDPUser,
 Search-SDPChange,
 Get-SDPChangeRoles,
 Add-SDPRolesToChange,
-Get-AllSDPAttachments -Variable Sdp,ApiKey,fromAddress,SMTPServer
+Get-AllSDPAttachments,
+Get-TaskRequest -Variable Sdp,ApiKey,fromAddress,SMTPServer
