@@ -1224,7 +1224,7 @@ function Get-TaskRequest {
         $Uri = $sdp + "/api/v3/requests/$($RequestID)/tasks/$($TaskID)"
         $Uri
         $result = Invoke-RestMethod -Method Get -Uri $Uri -Headers $header
-        $result
+        $result.task
     }
 } # Gets information on an existing Task Request
 
