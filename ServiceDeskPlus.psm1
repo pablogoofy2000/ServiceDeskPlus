@@ -150,7 +150,6 @@ function Add-TaskRequest{
 
     #>
 } #Adds Task Request
-
 function Resolve-Task{
         <#This function resolve an tasks. #>
     [CmdletBinding()]
@@ -761,50 +760,6 @@ function Add-RequestAssets{
     $responsetAsset = Invoke-RestMethod -Uri $url -Method put -Body $Parameters -Headers $header -ContentType "application/x-www-form-urlencoded"
     $responsetAsset
 }
-function Add-Worklog {
-    [CmdletBinding()]
-    param
-    (
-    [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0)] 
-    [alias ("Worklog")]
-    [String]
-    $WorklogType, # Can be a request / problem / change / task
-    [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=1)] 
-    [Int32]
-    $ID,
-    [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=2)] 
-    [String]
-    $Description,
-    [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true, Position=3)] 
-    [String]
-    $Technician,
-    [Parameter(Mandatory=$false)]
-    [Switch]
-    $UseSDPDemo
-    )  
-    $input = @"
-    {
-        "worklog": {
-            "$WorklogType": {
-                "id": "$ID"
-            },
-            "description": "$Description",
-            "technician": {
-                "name": "$Technician"
-            }
-        }
-    }
-"@
-    if($UseSDPDemo) {
-    $return =Switch-ToDemo
-    $sdp = $return[0]
-    $ApiKey = $return[1]}
-    $header = @{TECHNICIAN_KEY=$ApiKey}
-    $addWorklog = $Sdp + "/api/v3/worklog"
-    $parameters = @{input_data=$input}
-    $Result = Invoke-RestMethod -Method POST -Uri $addWorklog -Headers $header -Body $Parameters -ContentType "application/x-www-form-urlencoded"
-    $Result
-    } # Add Worklog
 function Add-RequestWorklog {
   [CmdletBinding()]
   param
@@ -1227,7 +1182,48 @@ function Get-TaskRequest {
         $result.task
     }
 } # Gets information on an existing Task Request
-
+function Get-SDPRequestConversations {
+    <#
+    .SYNOPSIS
+    Gets all Conversations: Emails and replies. Does not include Note or System Notifications
+    #>
+    [CmdletBinding()]
+    param
+        (
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0)] 
+        [alias ("id")]
+        [Int32]
+        $RequestID,
+        [Parameter(Mandatory=$false)]
+        [Switch]
+        $UseSDPDemo
+        )
+    process {
+        if($UseSDPDemo) {
+        $return =Switch-ToDemo
+        $sdp = $return[0]
+        $ApiKey = $return[1]
+        }
+        $input_data = @"
+        {
+            "list_info": {
+                "start_index": 1,
+                "sort_order": "desc",
+                "row_count": 1000
+            },
+        }
+"@
+        $data = @{ 'input_data' = $input_data}
+        $header = @{TECHNICIAN_KEY=$ApiKey}
+        $Uri = $sdp + "/api/v3/requests/$($RequestID)/conversations"
+        #$Uri
+        $data = @{ 'input_data' = $input_data}
+        #$input_data
+        #$data
+        $response = Invoke-RestMethod -Uri $uri -Method get -Body $data -Headers $header -ContentType "application/x-www-form-urlencoded"
+        $response   
+    }
+} # Gets all Conversations: Emails and replies. Does not include Note or System Notifications
 Export-ModuleMember -Function Search-Request,
 Add-TaskRequest,
 Remove-Request,
@@ -1253,4 +1249,5 @@ Search-SDPChange,
 Get-SDPChangeRoles,
 Add-SDPRolesToChange,
 Get-AllSDPAttachments,
-Get-TaskRequest -Variable Sdp,ApiKey,fromAddress,SMTPServer
+Get-TaskRequest,
+Get-SDPRequestConversations -Variable Sdp,ApiKey,fromAddress,SMTPServer
