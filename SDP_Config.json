@@ -1,0 +1,7 @@
+{
+    "SDP":"demo.servicedeskplus.com",
+    "ApiKey": "xxxxxxxxxxxxxxxxxxxx",
+    "fromAddress": "email@example.com",
+    "SMTPServer" : "10.0.0.1",
+    "SDPDemo" : "test.servicedeskplus.com"
+}
